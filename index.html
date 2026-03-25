@@ -9,35 +9,39 @@
         #main-container { display: flex; width: 100%; height: 100%; flex-wrap: wrap; }
         
         #survey-panel { width: 460px; height: 100%; border-right: 3px solid #007ac2; background: white; z-index: 5; }
-        @media (max-width: 800px) { #survey-panel { width: 100%; height: 60%; border-right: none; } }
+        @media (max-width: 800px) { #survey-panel { width: 100%; height: 60%; border-right: none; border-bottom: 2px solid #007ac2; } }
 
         #dashboard-panel { flex-grow: 1; height: 100%; position: relative; }
         @media (max-width: 800px) { #dashboard-panel { height: 40%; } }
 
         #dashboard-lock { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(255, 255, 255, 0.95); z-index: 10; 
+            background: rgba(255, 255, 255, 0.96); z-index: 10; 
             display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
         }
 
-        .loader-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 85%; max-width: 400px; }
+        .loader-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 85%; max-width: 420px; border-top: 5px solid #007ac2; }
         
+        /* Reloj de Arena Dinámico (Siempre activo) */
         .hourglass {
-            display: inline-block; position: relative; width: 50px; height: 50px;
-            animation: flip 2s linear infinite; margin-bottom: 20px;
+            display: inline-block; position: relative; width: 60px; height: 60px;
+            animation: flip 2s linear infinite; margin-bottom: 15px;
         }
         @keyframes flip { 0% { transform: rotate(0); } 50% { transform: rotate(180deg); } 100% { transform: rotate(180deg); } }
-        .hourglass:after { content: "⏳"; font-size: 40px; }
+        .hourglass:after { content: "⏳"; font-size: 45px; }
 
-        .progress-container { width: 100%; background-color: #e0e0e0; border-radius: 10px; margin: 20px 0; height: 10px; overflow: hidden; visibility: hidden; } /* Inicia oculto */
-        .progress-bar { width: 0%; height: 100%; background-color: #007ac2; transition: width 0.5s; }
+        /* Contenedor de la barra - Invisible al inicio */
+        .progress-container { width: 100%; background-color: #eee; border-radius: 10px; margin: 25px 0 10px 0; height: 12px; overflow: hidden; display: none; } 
+        .progress-bar { width: 0%; height: 100%; background-color: #28a745; transition: width 0.3s linear; }
 
         #btn-unblock { 
-            display: none; background: #28a745; color: white; border: none; padding: 18px 30px; 
+            display: none; background: #007ac2; color: white; border: none; padding: 20px; 
             font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%;
+            box-shadow: 0 4px 12px rgba(0, 122, 194, 0.3); margin-top: 15px;
         }
         
-        #status-text { color: #555; font-weight: bold; }
+        #status-text { color: #444; font-size: 18px; margin-bottom: 5px; transition: color 0.5s; }
+        #sub-text { font-size: 14px; color: #777; margin-bottom: 10px; }
         iframe { border: none; width: 100%; height: 100%; }
     </style>
 </head>
@@ -51,9 +55,9 @@
         <div id="dashboard-panel">
             <div id="dashboard-lock">
                 <div class="loader-card">
-                    <div class="hourglass"></div>
-                    <h3 id="status-text">Esperando envío de datos...</h3>
-                    <p id="sub-text" style="font-size: 14px; color: #777;">Complete el registro para habilitar el tablero.</p>
+                    <div id="reloj" class="hourglass"></div>
+                    <h3 id="status-text">Iniciando Validación...</h3>
+                    <p id="sub-text">Por favor, complete el registro a la izquierda para activar el Tablero Pluviométrico.</p>
                     
                     <div id="p-container" class="progress-container">
                         <div id="myBar" class="progress-bar"></div>
@@ -62,7 +66,8 @@
                     <button id="btn-unblock" onclick="document.getElementById('dashboard-lock').style.display='none'">
                         ✅ REGISTRO VERIFICADO - ENTRAR
                     </button>
-                    <p id="footer-msg" style="font-size: 11px; color: #aaa;">Sincronizando con Portal ArcGIS...</p>
+                    
+                    <p id="footer-msg" style="font-size: 11px; color: #bbb; margin-top: 10px;">ID de Sesión: EMP-2026-ACTIVE</p>
                 </div>
             </div>
             <iframe src="https://empagua.maps.arcgis.com/apps/dashboards/1db4bf42e9ca46598463e3f352fb3c6f"></iframe>
@@ -70,30 +75,40 @@
     </div>
 
     <script>
-        // Paso 1: Esperar 25 segundos antes de mostrar la barra
+        // CRONOGRAMA DE EVENTOS:
+        // 0s: El reloj de arena empieza a girar solo (ya está activo por CSS).
+        // 25s: Aparece la barra y cambia el texto.
+        // 50s: Se completa la carga y aparece el botón.
+
+        // Evento a los 25 segundos
         setTimeout(function() {
-            document.getElementById("p-container").style.visibility = "visible";
-            document.getElementById("status-text").innerText = "Sincronizando datos SDE...";
-            iniciarCarga();
+            document.getElementById("p-container").style.display = "block";
+            document.getElementById("status-text").innerText = "Sincronizando con SDE...";
+            document.getElementById("status-text").style.color = "#007ac2";
+            document.getElementById("sub-text").innerText = "Procesando coordenadas y datos de visita...";
+            iniciarBarra();
         }, 25000); 
 
-        function iniciarCarga() {
+        function iniciarBarra() {
             var elem = document.getElementById("myBar");
             var width = 0;
-            // Los 25 segundos restantes (50 total - 25 espera)
+            // Queremos que tarde otros 25 segundos en llegar a 100
+            // 25000ms / 100 pasos = 250ms por cada 1%
             var id = setInterval(function() {
                 if (width >= 100) {
                     clearInterval(id);
+                    // Finalización
                     document.getElementById("btn-unblock").style.display = "block";
-                    document.getElementById("status-text").innerText = "¡Validación Exitosa!";
+                    document.getElementById("status-text").innerText = "¡Validación Completada!";
                     document.getElementById("status-text").style.color = "#28a745";
-                    document.querySelector(".hourglass").style.display = "none";
-                    document.getElementById("footer-msg").innerText = "Ya puede acceder al tablero.";
+                    document.getElementById("reloj").style.display = "none";
+                    document.getElementById("p-container").style.display = "none";
+                    document.getElementById("sub-text").innerText = "Datos recibidos correctamente.";
                 } else {
                     width++;
                     elem.style.width = width + "%";
                 }
-            }, 250); // Ajustado para completar en 25 segundos aprox.
+            }, 250); 
         }
     </script>
 </body>
