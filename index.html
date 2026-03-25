@@ -10,11 +10,10 @@
         #survey-panel { width: 460px; height: 100%; border-right: 3px solid #007ac2; background: white; z-index: 5; }
         @media (max-width: 800px) { #survey-panel { width: 100%; height: 60%; border-right: none; } }
         
-        /* Contenedor del Dashboard */
-        #dashboard-panel { flex-grow: 1; height: 100%; position: relative; transition: all 0.5s ease; }
+        #dashboard-panel { flex-grow: 1; height: 100%; position: relative; }
         @media (max-width: 800px) { #dashboard-panel { height: 40%; } }
         
-        /* Clase para ponerlo en pantalla completa al dar clic */
+        /* Pantalla completa automática al activar */
         .full-screen { position: fixed !important; top: 0; left: 0; width: 100% !important; height: 100% !important; z-index: 100; }
 
         #dashboard-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.96); z-index: 10; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
@@ -25,22 +24,17 @@
         .progress-container { width: 100%; background-color: #eee; border-radius: 10px; margin: 25px 0 10px 0; height: 12px; overflow: hidden; display: none; } 
         .progress-bar { width: 0%; height: 100%; background-color: #007ac2; transition: width 0.5s; }
         #btn-unblock { display: none; background: #28a745; color: white; border: none; padding: 18px 30px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; }
-        #status-text { color: #555; font-weight: bold; }
         iframe { border: none; width: 100%; height: 100%; }
-        
-        /* Botón para cerrar pantalla completa (opcional por si quieren regresar al survey) */
-        #btn-close-full { display: none; position: fixed; top: 10px; right: 10px; z-index: 101; background: #007ac2; color: white; border: none; padding: 10px; border-radius: 5px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div id="main-container">
         <div id="survey-panel">
-            <iframe src="https://survey123.arcgis.com/share/6fa3227ded564a7d86e99190540042e9?portalUrl=https://gis.empagua.com/portal&hide=navbar"></iframe>
+            <iframe src="https://survey123.arcgis.com/share/6fa3227ded564a7d86e99190540042e9?portalUrl=https://gis.empagua.com/portal&hide=navbar" allow="geolocation"></iframe>
         </div>
 
         <div id="dashboard-panel">
-            <button id="btn-close-full" onclick="exitFullScreen()">✖ CERRAR TABLERO</button>
             <div id="dashboard-lock">
                 <div class="loader-card">
                     <div class="hourglass"></div>
@@ -50,12 +44,12 @@
                     <button id="btn-unblock" onclick="goFullScreen()">✅ REGISTRO CONFIRMADO - ENTRAR</button>
                 </div>
             </div>
-            <iframe id="dash-iframe" src="https://empagua.maps.arcgis.com/apps/dashboards/1db4bf42e9ca46598463e3f352fb3c6f"></iframe>
+            <iframe id="dash-iframe" src="https://empagua.maps.arcgis.com/apps/dashboards/1db4bf42e9ca46598463e3f352fb3c6f" allow="geolocation"></iframe>
         </div>
     </div>
 
     <script>
-        // Tus tiempos: 50s de espera y 10s de carga
+        // Tus tiempos: 50s espera + 10s carga
         setTimeout(function() {
             document.getElementById("p-container").style.display = "block";
             var elem = document.getElementById("myBar");
@@ -74,17 +68,11 @@
             }, 100); 
         }, 50000); 
 
-        // Función para expandir el tablero
         function goFullScreen() {
             document.getElementById('dashboard-lock').style.display = 'none';
             document.getElementById('dashboard-panel').classList.add('full-screen');
-            document.getElementById('btn-close-full').style.display = 'block';
-        }
-
-        // Función por si quieren volver a ver el Survey
-        function exitFullScreen() {
-            document.getElementById('dashboard-panel').classList.remove('full-screen');
-            document.getElementById('btn-close-full').style.display = 'none';
+            // Al ser full screen fijo, quitamos el scroll del body
+            document.body.style.overflow = 'hidden';
         }
     </script>
 </body>
