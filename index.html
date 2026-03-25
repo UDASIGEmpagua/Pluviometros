@@ -5,10 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pluviómetros - EMPAGUA</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #ffffff; }
-        #survey-container { position: absolute; width: 100%; height: 100%; z-index: 100; background: white; }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #f4f4f4; font-family: sans-serif; }
+        #survey-container { position: absolute; width: 100%; height: 100%; z-index: 100; background: white; display: flex; flex-direction: column; }
         #dashboard-container { width: 100%; height: 100%; display: none; }
-        iframe { border: none; width: 100%; height: 100%; }
+        iframe { border: none; width: 100%; height: 100%; flex-grow: 1; }
+        
+        /* Botón de auxilio por si el auto-desbloqueo falla */
+        .btn-ready { 
+            background: #28a745; color: white; border: none; padding: 15px; 
+            text-align: center; font-weight: bold; cursor: pointer; display: block;
+            width: 100%; text-transform: uppercase;
+        }
     </style>
 </head>
 <body>
@@ -17,6 +24,7 @@
         <iframe id="surveyFrame" 
             src="https://survey123.arcgis.com/share/6fa3227ded564a7d86e99190540042e9?portalUrl=https://gis.empagua.com/portal&hide=navbar">
         </iframe>
+        <button class="btn-ready" onclick="desbloquearTablero()">¿Ya enviaste los datos? Clic aquí para ver Tablero</button>
     </div>
 
     <div id="dashboard-container">
@@ -25,26 +33,22 @@
 
     <script>
         function desbloquearTablero() {
-            console.log("¡Señal recibida! Cambiando a Dashboard...");
+            console.log("Cambiando a Dashboard...");
             document.getElementById('survey-container').style.display = 'none';
             document.getElementById('dashboard-container').style.display = 'block';
         }
 
+        // Intento de detección automática (mantenemos la lógica por si el navegador lo permite)
         window.addEventListener('message', function(e) {
-            // Survey123 envía varios tipos de eventos, probamos con todos los conocidos
             if (e.data) {
-                // Caso 1: El mensaje es un string (JSON)
-                if (typeof e.data === 'string') {
-                    if (e.data.includes('onFormSubmitted') || e.data.includes('formFinished')) {
+                try {
+                    var t = (typeof e.data === 'string') ? JSON.parse(e.data) : e.data;
+                    if (t.event === 'survey123:onFormSubmitted' || t.method === 'onFormSubmitted') {
                         desbloquearTablero();
                     }
-                } 
-                // Caso 2: El mensaje ya es un objeto
-                else if (e.data.event === 'survey123:onFormSubmitted' || e.data.method === 'onFormSubmitted') {
-                    desbloquearTablero();
-                }
+                } catch(err) {}
             }
-        }, false);
+        });
     </script>
 </body>
 </html>
