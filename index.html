@@ -13,7 +13,7 @@
         #dashboard-panel { flex-grow: 1; height: 100%; position: relative; }
         @media (max-width: 800px) { #dashboard-panel { height: 40%; } }
         
-        /* Pantalla completa automática al activar */
+        /* Clase para pantalla completa fija */
         .full-screen { position: fixed !important; top: 0; left: 0; width: 100% !important; height: 100% !important; z-index: 100; }
 
         #dashboard-lock { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.96); z-index: 10; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
@@ -24,6 +24,7 @@
         .progress-container { width: 100%; background-color: #eee; border-radius: 10px; margin: 25px 0 10px 0; height: 12px; overflow: hidden; display: none; } 
         .progress-bar { width: 0%; height: 100%; background-color: #007ac2; transition: width 0.5s; }
         #btn-unblock { display: none; background: #28a745; color: white; border: none; padding: 18px 30px; font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%; }
+        #status-text { color: #555; font-weight: bold; }
         iframe { border: none; width: 100%; height: 100%; }
     </style>
 </head>
@@ -39,7 +40,7 @@
                 <div class="loader-card">
                     <div class="hourglass"></div>
                     <h3 id="status-text">Validando Registro de Visita...</h3>
-                    <p style="font-size: 14px; color: #777;">Complete el formulario para habilitar el tablero.</p>
+                    <p style="font-size: 14px; color: #777;">Complete el formulario a su izquierda para habilitar el tablero.</p>
                     <div id="p-container" class="progress-container"><div id="myBar" class="progress-bar"></div></div>
                     <button id="btn-unblock" onclick="goFullScreen()">✅ REGISTRO CONFIRMADO - ENTRAR</button>
                 </div>
@@ -49,11 +50,13 @@
     </div>
 
     <script>
-        // Tus tiempos: 50s espera + 10s carga
+        var i = 0;
+        // 50 segundos de espera fija
         setTimeout(function() {
             document.getElementById("p-container").style.display = "block";
             var elem = document.getElementById("myBar");
             var width = 0;
+            // 10 segundos de carga (100ms x 100 pasos)
             var id = setInterval(function() {
                 if (width >= 100) {
                     clearInterval(id);
@@ -71,7 +74,6 @@
         function goFullScreen() {
             document.getElementById('dashboard-lock').style.display = 'none';
             document.getElementById('dashboard-panel').classList.add('full-screen');
-            // Al ser full screen fijo, quitamos el scroll del body
             document.body.style.overflow = 'hidden';
         }
     </script>
