@@ -5,75 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pluviómetros - EMPAGUA</title>
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #f4f4f4; font-family: sans-serif; }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #f4f4f4; font-family: 'Segoe UI', sans-serif; }
+        #main-container { display: flex; width: 100%; height: 100%; flex-wrap: wrap; }
         
-        /* Contenedor principal para dividir la pantalla */
-        #main-container { display: flex; width: 100%; height: 100%; }
-        
-        /* El Survey (Columna Izquierda) */
-        #survey-panel { width: 400px; height: 100%; border-right: 2px solid #ddd; background: white; z-index: 5; }
-        iframe { border: none; width: 100%; height: 100%; }
-        
-        /* El Dashboard (Columna Derecha) */
-        #dashboard-panel { flex-grow: 1; height: 100%; position: relative; }
-        
-        /* La Traba: Capa Gris que tapa el Dashboard */
+        /* Panel del Survey */
+        #survey-panel { width: 450px; height: 100%; border-right: 2px solid #007ac2; background: white; z-index: 5; }
+        @media (max-width: 800px) { #survey-panel { width: 100%; height: 50%; border-right: none; border-bottom: 2px solid #007ac2; } }
+
+        /* Panel del Dashboard */
+        #dashboard-panel { flex-grow: 1; height: 100%; position: relative; min-width: 300px; }
+        @media (max-width: 800px) { #dashboard-panel { height: 50%; } }
+
+        /* Capa de Bloqueo */
         #dashboard-lock { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(200, 200, 200, 0.95); /* Gris semi-transparente */
-            z-index: 10; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
-            color: #333; transition: opacity 0.5s ease;
+            background: rgba(240, 240, 240, 0.98); z-index: 10; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            text-align: center; color: #555; transition: all 0.6s ease;
         }
-        #dashboard-lock h2 { font-size: 24px; margin-bottom: 20px; }
-        #dashboard-lock p { font-size: 16px; width: 80%; max-width: 500px; }
+        .lock-icon { font-size: 50px; margin-bottom: 15px; }
+        
+        iframe { border: none; width: 100%; height: 100%; }
     </style>
 </head>
 <body>
 
     <div id="main-container">
         <div id="survey-panel">
-            <iframe id="surveyFrame" 
-                src="https://survey123.arcgis.com/share/6fa3227ded564a7d86e99190540042e9?portalUrl=https://gis.empagua.com/portal&hide=navbar">
-            </iframe>
+            <iframe id="surveyFrame" src="https://survey123.arcgis.com/share/6fa3227ded564a7d86e99190540042e9?portalUrl=https://gis.empagua.com/portal&hide=navbar"></iframe>
         </div>
 
         <div id="dashboard-panel">
-            <div id="dashboard-lock">
-                <h2>Tablero Bloqueado</h2>
-                <p>Por favor, completa el formulario de Registro de Visitas en la columna de la izquierda. <br><br>Al enviar los datos correctamente, el tablero se desbloqueará automáticamente.</p>
+            <div id="dashboard-lock" id="lockScreen">
+                <div class="lock-icon">🔒</div>
+                <h2>Visualización Restringida</h2>
+                <p>El tablero se activará automáticamente al finalizar <br>el registro de su visita (columna izquierda).</p>
             </div>
-            
             <iframe src="https://empagua.maps.arcgis.com/apps/dashboards/1db4bf42e9ca46598463e3f352fb3c6f"></iframe>
         </div>
     </div>
 
     <script>
-        // Función para quitar la traba gris
-        function desbloquearTablero() {
-            console.log("Detección de envío automática recibida. Desbloqueando tablero...");
-            var lock = document.getElementById('dashboard-lock');
-            // Le damos una animación suave de desvanecimiento
-            lock.style.opacity = '0';
-            // Esperamos a que termine la animación para quitar el elemento completamente
-            setTimeout(function() {
-                lock.style.display = 'none';
-            }, 500);
-        }
-
-        // Intento de detección automática (la que nos ha estado dando guerra en Enterprise, pero la mantenemos de respaldo)
         window.addEventListener('message', function(e) {
             if (e.data) {
                 try {
-                    // Survey123 manda un string JSON, lo convertimos para leerlo
                     var data = (typeof e.data === 'string') ? JSON.parse(e.data) : e.data;
-                    
-                    // Si detectamos que el formulario se envió con éxito
-                    if (data.event === 'survey123:onFormSubmitted') {
-                        desbloquearTablero();
+                    // Detectamos el evento de éxito de Survey123
+                    if (data.event === 'survey123:onFormSubmitted' || data.method === 'onFormSubmitted') {
+                        var lock = document.getElementById('dashboard-lock');
+                        lock.style.opacity = '0';
+                        setTimeout(function() { lock.style.display = 'none'; }, 600);
                     }
-                } catch (err) {
-                    // Ignoramos mensajes que no sean del survey
-                }
+                } catch (err) {}
             }
         });
     </script>
