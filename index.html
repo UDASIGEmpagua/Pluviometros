@@ -49,23 +49,24 @@
     <script>
         // 1. Fase Inicial: 50 segundos de espera
         setTimeout(function() {
-            // 2. Fase de Carga: Aparece la barra y cambian los textos
+            // OCULTAR EL RELOJ AL INICIAR LA CARGA
+            document.getElementById("reloj-arena").style.display = "none";
+            
+            // 2. Fase de Carga
             document.getElementById("p-container").style.display = "block";
             document.getElementById("status-text").innerText = "Validando registro de visita...";
-            document.getElementById("sub-text").innerText = "Sincronizando datos con el servidor..."; // Quitamos lo de 'complete el formulario'
+            document.getElementById("sub-text").innerText = "Sincronizando datos con el servidor...";
             
             var elem = document.getElementById("myBar");
             var width = 0;
-            // Carga en 10 segundos (100ms * 100 pasos)
             var id = setInterval(function() {
                 if (width >= 100) {
                     clearInterval(id);
-                    // 3. Fase Final: Aparece el botón
+                    // 3. Fase Final
                     document.getElementById("btn-unblock").style.display = "block";
                     document.getElementById("status-text").innerText = "Registro verificado";
                     document.getElementById("status-text").style.color = "#28a745";
-                    document.getElementById("sub-text").innerText = "Acceso concedido al tablero de control."; // Texto limpio final
-                    document.getElementById("reloj-arena").style.display = "none";
+                    document.getElementById("sub-text").innerText = "Acceso concedido al tablero de control.";
                 } else {
                     width++;
                     elem.style.width = width + "%";
