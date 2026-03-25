@@ -14,35 +14,27 @@
         #dashboard-panel { flex-grow: 1; height: 100%; position: relative; }
         @media (max-width: 800px) { #dashboard-panel { height: 40%; } }
 
-        /* Capa de Bloqueo Estilo Carga */
         #dashboard-lock { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(255, 255, 255, 0.95); z-index: 10; 
             display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
         }
 
-        .loader-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 80%; max-width: 400px; }
+        .loader-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 85%; max-width: 400px; }
         
-        /* Reloj de Arena Animado */
         .hourglass {
             display: inline-block; position: relative; width: 50px; height: 50px;
             animation: flip 2s linear infinite; margin-bottom: 20px;
         }
-        @keyframes flip {
-            0% { transform: rotate(0); } 50% { transform: rotate(180deg); } 100% { transform: rotate(180deg); }
-        }
-        .hourglass:after {
-            content: "⏳"; font-size: 40px;
-        }
+        @keyframes flip { 0% { transform: rotate(0); } 50% { transform: rotate(180deg); } 100% { transform: rotate(180deg); } }
+        .hourglass:after { content: "⏳"; font-size: 40px; }
 
-        /* Barra de progreso */
-        .progress-container { width: 100%; background-color: #e0e0e0; border-radius: 10px; margin: 20px 0; height: 10px; overflow: hidden; }
+        .progress-container { width: 100%; background-color: #e0e0e0; border-radius: 10px; margin: 20px 0; height: 10px; overflow: hidden; visibility: hidden; } /* Inicia oculto */
         .progress-bar { width: 0%; height: 100%; background-color: #007ac2; transition: width 0.5s; }
 
         #btn-unblock { 
             display: none; background: #28a745; color: white; border: none; padding: 18px 30px; 
             font-size: 18px; font-weight: bold; cursor: pointer; border-radius: 8px; width: 100%;
-            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
         }
         
         #status-text { color: #555; font-weight: bold; }
@@ -60,17 +52,17 @@
             <div id="dashboard-lock">
                 <div class="loader-card">
                     <div class="hourglass"></div>
-                    <h3 id="status-text">Validando Registro de Visita...</h3>
-                    <p style="font-size: 14px; color: #777;">Complete el formulario a su izquierda para habilitar el tablero en tiempo real.</p>
+                    <h3 id="status-text">Esperando envío de datos...</h3>
+                    <p id="sub-text" style="font-size: 14px; color: #777;">Complete el registro para habilitar el tablero.</p>
                     
-                    <div class="progress-container">
+                    <div id="p-container" class="progress-container">
                         <div id="myBar" class="progress-bar"></div>
                     </div>
 
                     <button id="btn-unblock" onclick="document.getElementById('dashboard-lock').style.display='none'">
-                        ✅ REGISTRO CONFIRMADO - ENTRAR
+                        ✅ REGISTRO VERIFICADO - ENTRAR
                     </button>
-                    <p id="footer-msg" style="font-size: 11px; color: #aaa;">Sincronizando con base de datos SDE...</p>
+                    <p id="footer-msg" style="font-size: 11px; color: #aaa;">Sincronizando con Portal ArcGIS...</p>
                 </div>
             </div>
             <iframe src="https://empagua.maps.arcgis.com/apps/dashboards/1db4bf42e9ca46598463e3f352fb3c6f"></iframe>
@@ -78,35 +70,31 @@
     </div>
 
     <script>
-        var i = 0;
-        var timeInSeconds = 35; // Tiempo total de espera
-        var interval = (timeInSeconds * 1000) / 100;
-        
-        function move() {
-            if (i == 0) {
-                i = 1;
-                var elem = document.getElementById("myBar");
-                var width = 0;
-                var id = setInterval(frame, interval);
-                function frame() {
-                    if (width >= 100) {
-                        clearInterval(id);
-                        i = 0;
-                        // Al terminar, mostramos el botón y cambiamos textos
-                        document.getElementById("btn-unblock").style.display = "block";
-                        document.getElementById("status-text").innerText = "¡Registro Verificado!";
-                        document.getElementById("status-text").style.color = "#28a745";
-                        document.querySelector(".hourglass").style.display = "none";
-                        document.getElementById("footer-msg").innerText = "Presione el botón para ver los datos.";
-                    } else {
-                        width++;
-                        elem.style.width = width + "%";
-                    }
+        // Paso 1: Esperar 25 segundos antes de mostrar la barra
+        setTimeout(function() {
+            document.getElementById("p-container").style.visibility = "visible";
+            document.getElementById("status-text").innerText = "Sincronizando datos SDE...";
+            iniciarCarga();
+        }, 25000); 
+
+        function iniciarCarga() {
+            var elem = document.getElementById("myBar");
+            var width = 0;
+            // Los 25 segundos restantes (50 total - 25 espera)
+            var id = setInterval(function() {
+                if (width >= 100) {
+                    clearInterval(id);
+                    document.getElementById("btn-unblock").style.display = "block";
+                    document.getElementById("status-text").innerText = "¡Validación Exitosa!";
+                    document.getElementById("status-text").style.color = "#28a745";
+                    document.querySelector(".hourglass").style.display = "none";
+                    document.getElementById("footer-msg").innerText = "Ya puede acceder al tablero.";
+                } else {
+                    width++;
+                    elem.style.width = width + "%";
                 }
-            }
+            }, 250); // Ajustado para completar en 25 segundos aprox.
         }
-        // Iniciar la barra al cargar
-        move();
     </script>
 </body>
 </html>
